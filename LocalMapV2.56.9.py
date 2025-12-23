@@ -8,8 +8,8 @@ import shutil
 import hashlib
 import urllib.request
 
-REPO_URL = "https://github.com/XBNMF35XB/SilentMap.py"
-RAW_URL = "https://raw.githubusercontent.com/XBNMF35XB/SilentMap.py/main/SilentMap.py"
+REPO_URL = "https://github.com/XBNMF35XB/SilentMapProject"
+RAW_URL = "https://raw.githubusercontent.com/XBNMF35XB/SilentMap.py/main/SilentMapProject"
 REPO_DIR = "SilentMap.py"
 VENV_DIR = "venv"
 
