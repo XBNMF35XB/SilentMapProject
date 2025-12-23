@@ -1,8 +1,8 @@
 #!/usr/bin/python3
 
-#=====================================================
-#   IMPORTS
-#=====================================================
+
+# --------------- IMPORTS --------------- #
+
 
 import os
 import sys
@@ -11,38 +11,41 @@ import random
 import platform
 import subprocess
 import socket
+import psutils
+import pywifi
 
-# Optional Scapy for ARP Scan (needs sudo)
+# Optional Scapy for ARP Scan (needs sudo) #
+
 try:
     from scapy.all import ARP, Ether, srp, conf
 except ImportError:
     conf = None
 
-#=====================================================
-#   COLORS
-#=====================================================
+
+# --------------- COLORS --------------- #
 
 ICE     = "\033[97m"
 GREEN   = "\033[92m"
 YELLOW  = "\033[93m"
-BLUE    = "\033[94m"
-ORANGE  = "\033[33m"
+BLUE    = "\033[34m"
+ORANGE  = "\033[38;5;214m"
 RESET   = "\033[0m"
 BOLD    = "\033[1m"
 
-#=====================================================
-#   GLOBAL SETTINGS
-#=====================================================
 
-SILENT_MODE = False  # Attivato da utente all'inizio
 
-#=====================================================
-#   VISUAL UTILITIES
-#=====================================================
+# --------------- GLOBAL SETTINGS --------------- #
+
+
+SILENT_MODE = False 
+
+
+# --------------- VISUAL UTILITIES --------------- #
+
 
 def wt(text, d=0.02, color=ICE, bp=False):
     global SILENT_MODE
-    delay = d if SILENT_MODE else 0.002
+    delay = d if SILENT_MODE else 0.02
     for c in text:
         sys.stdout.write(color + c + RESET)
         sys.stdout.flush()
@@ -53,7 +56,7 @@ def wt(text, d=0.02, color=ICE, bp=False):
 
 def step_loading(label, size=26, speed=0.02):
     global SILENT_MODE
-    speed = speed * 3 if SILENT_MODE else speed  # rallenta se silent
+    speed = speed * 3 if SILENT_MODE else speed 
     label = label.strip()
     for i in range(size + 1):
         filled = "#" * i
@@ -62,22 +65,22 @@ def step_loading(label, size=26, speed=0.02):
 
         if pct == 100:
             sys.stdout.write(
-                f"\r{YELLOW}[LOADING]{RESET} {label:<32} "
-                f"{YELLOW}[{filled}{empty}] {pct:3d}% {GREEN}[OK]{RESET}"
+                f"\r{ORANGE}[LOADING]{RESET} {label:<32} "
+                f"{ORANGE}[{filled}{empty}] {pct:3d}% {GREEN}[OK]{RESET}"
             )
         else:
             sys.stdout.write(
-                f"\r{YELLOW}[LOADING]{RESET} {label:<32} "
-                f"{YELLOW}[{filled}{empty}] {pct:3d}%{RESET}"
+                f"\r{ORANGE}[LOADING]{RESET} {label:<32} "
+                f"{ORANGE}[{filled}{empty}] {pct:3d}%{RESET}"
             )
 
         sys.stdout.flush()
         time.sleep(speed)
     print()
 
-#=====================================================
-#   INTRO
-#=====================================================
+
+# --------------- INTRO --------------- #
+
 
 def intro():
     wt("BOOTING MODULE...", bp=True)
@@ -96,18 +99,19 @@ def intro():
 
     wt(f"\n{BOLD}SYSTEM CORE ONLINE{RESET}\n")
 
-    # Chiedi Silent Mode
+    # Ask to activate Silent Mode
     global SILENT_MODE
-    choice = input("Activate Silent Mode? (y/n): ").strip().lower()
+    print(f"{BLUE}Activate Silent Mode? (y/n): {RESET}", end="")
+    choice = input().strip().lower()
     SILENT_MODE = True if choice == "y" else False
     if SILENT_MODE:
-        print("\nSilent Mode activated. Operations will be slower to avoid detection.\n")
+        print(f"{BLUE}\n[!] Silent Mode activated. Operations will be slower to avoid detection.\n")
     else:
-        print("\nSilent Mode not activated. Running normally.\n")
+        print(f"{BLUE}\n[!] Silent Mode not activated. Running normally. \n")
 
-#=====================================================
-#   LOCAL OS DETECTION
-#=====================================================
+
+# --------------- LOCAL OS DETECTION --------------- #
+
 
 def detect_linux():
     try:
@@ -227,9 +231,9 @@ def reveal(osname, details):
         time.sleep(0.04)
     print()
 
-#=====================================================
-#   NETWORK MODULE
-#=====================================================
+
+# --------------- NETWORK MODULE --------------- #
+
 
 def arp_scan(subnet="192.168.1.0/24", retries=3, timeout=2):
     if conf is None:
@@ -248,8 +252,7 @@ def arp_scan(subnet="192.168.1.0/24", retries=3, timeout=2):
     for _, r in answered:
         ip = r.psrc
         mac = r.hwsrc
-        hosts[ip] = mac  # evita duplicati
-
+        hosts[ip] = mac 
     results = []
     for ip, mac in hosts.items():
         # Hostname
@@ -338,9 +341,130 @@ def network_scan(subnet):
 
     print("\nNetwork scan complete.\n")
 
-#=====================================================
-#   IP / MAC INFO UTILITIES
-#=====================================================
+
+# --------------- WI-FI SCAN MODULE --------------- #
+
+def _get_wifi_iface():
+    wifi = pywifi.PyWiFi()
+    ifaces = wifi.interfaces()
+    if not ifaces:
+        return None
+    return ifaces[0]
+
+
+def _parse_security(profile):
+    if not profile.akm:
+        return "Open"
+
+    akm_map = {
+        pywifi.const.AKM_TYPE_NONE: "Open",
+        pywifi.const.AKM_TYPE_WPA: "WPA",
+        pywifi.const.AKM_TYPE_WPAPSK: "WPA-PSK",
+        pywifi.const.AKM_TYPE_WPA2: "WPA2",
+        pywifi.const.AKM_TYPE_WPA2PSK: "WPA2-PSK",
+        pywifi.const.AKM_TYPE_WPA3: "WPA3",
+    }
+
+    return ", ".join(akm_map.get(a, "Unknown") for a in profile.akm)
+
+
+def scan_wifi_networks(scans=3, delay=1.2):
+    iface = _get_wifi_iface()
+
+    if iface is None:
+        print(f"{YELLOW}No Wi-Fi interface found.{RESET}")
+        return []
+
+    print(f"\n{YELLOW}Using interface: {iface.name()}{RESET}")
+    print(f"{YELLOW}Scanning available Wi-Fi networks...{RESET}")
+
+    raw_results = []
+
+    for _ in range(scans):
+        iface.scan()
+        time.sleep(delay)
+        raw_results.extend(iface.scan_results())
+
+    networks = {}
+    for r in raw_results:
+        key = (r.bssid, r.ssid)
+
+        if key not in networks:
+            networks[key] = {
+                "ssid": r.ssid or "<hidden>",
+                "bssid": r.bssid,
+                "signals": [],
+                "security": _parse_security(r),
+                "freq": r.freq
+            }
+
+        networks[key]["signals"].append(r.signal)
+
+    results = []
+    for n in networks.values():
+        results.append({
+            "ssid": n["ssid"],
+            "bssid": n["bssid"],
+            "signal": round(sum(n["signals"]) / len(n["signals"]), 1),
+            "security": n["security"],
+            "freq": n["freq"]
+        })
+
+    results.sort(key=lambda x: x["signal"], reverse=True)
+
+    if not results:
+        print(f"{YELLOW}No Wi-Fi networks found.{RESET}")
+        return []
+
+    print(f"{YELLOW}Found {len(results)} networks:{RESET}\n")
+    for i, n in enumerate(results, 1):
+        print(
+            f"{YELLOW}{i}. SSID: {n['ssid']}\n"
+            f"   BSSID: {n['bssid']}\n"
+            f"   Signal: {n['signal']} dBm\n"
+            f"   Security: {n['security']}\n"
+            f"   Frequency: {n['freq']} MHz{RESET}\n"
+        )
+
+    return results
+
+
+def scan_selected_wifi_network(_network):
+    ip = get_local_ip()
+    if ip == "Unknown":
+        print(f"{YELLOW}Unable to determine local IP.{RESET}")
+        return
+
+    subnet = ".".join(ip.split(".")[:3]) + ".0/24"
+    print(f"{YELLOW}Scanning local network subnet: {subnet}{RESET}")
+    network_scan(subnet)
+
+
+def choose_network_to_scan():
+    print("\nChoose the network to scan:")
+    print("1. Scan Local Network (LAN)")
+    print("2. Show Wi-Fi Networks in range")
+
+    choice = input(f"{YELLOW}Enter choice: {RESET}")
+
+    if choice == "1":
+        ip = get_local_ip()
+        if ip != "Unknown":
+            subnet = ".".join(ip.split(".")[:3]) + ".0/24"
+            print(f"{YELLOW}Scanning local network with subnet: {subnet}{RESET}")
+            network_scan(subnet)
+        else:
+            print(f"{YELLOW}No local network found.{RESET}")
+
+    elif choice == "2":
+        scan_wifi_networks()
+
+    else:
+        print(f"{YELLOW}Invalid choice, please select again.{RESET}")
+
+
+# --------------- IP / MAC INFO UTILITIES --------------- #
+
 
 def is_valid_ip(ip):
     try:
@@ -416,9 +540,9 @@ def ip_mac_info_module():
     else:
         print("Invalid option.")
 
-#=====================================================
-#   MAIN
-#=====================================================
+
+# --------------- MAIN --------------- #
+
 
 def main():
     intro()
