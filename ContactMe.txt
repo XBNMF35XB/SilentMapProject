@@ -1,0 +1,28 @@
+Hello!
+
+This is Nexus.
+If you are reading this file, you probably need help — no problem, I’m here to help you 😄
+
+Please contact me at the following email address:
+   < smapproject41@gmail.com >
+
+In your email, include:
+- A clear description of the problem
+- Your Operating System
+- If you are using Linux, specify:
+  - Your distribution (distro name)
+  - The official website of the distro
+- If the issue is related to the new installer, please copy and paste the exact error message
+
+If the problem requires deeper work, give me up to 3 days and I will provide an optimized version specifically for your OS.
+Keep in mind that this project is released under the Apache License.
+
+Beta Testing:
+If you want to become a Beta Tester, just tell me in the email.
+Beta testers receive preview versions that may contain bugs, but help improve compatibility and features.
+
+Arch Linux users:
+If you use Arch Linux, feel free to ask additional questions — tools, setup tips, labs, or general workflow advice.
+
+Thanks for using SilentMapProject!
+— Nexus
