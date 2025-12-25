@@ -15,7 +15,7 @@ REPO_URL = "https://github.com/XBNMF35XB/SilentMapProject"
 RAW_BASE = "https://raw.githubusercontent.com/XBNMF35XB/SilentMapProject/main"
 REPO_DIR = "SMap"
 VENV_DIR = "venv"
-OFFICIAL_FILES = ["SilentMap.py", "README.txt", "LICENSE", "ContactMe.txt"]
+OFFICIAL_FILES = ["SMap.py", "ReadMe.txt", "Apache Licence", "ContactMe.txt"]
 
 # ---------------- UTILS ---------------- #
 
