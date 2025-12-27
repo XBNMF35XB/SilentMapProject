@@ -22,23 +22,31 @@ Optional: scapy (required for network scanning)
 Administrator / root privileges for ARP scanning
 To install Scapy: pip install scapy
 Installation
-Arch Linux sudo pacman -S git 
+
+Arch Linux 
+sudo pacman -S git 
 git clone https://github.com/XBNMF35XB/SilentMap.py.git cd SilentMap.py sudo python3 SilentMap.py
+
 Debian-based Distributions (Debian, Ubuntu, Kali Linux, Linux Mint) 
 sudo apt update sudo apt install git python3 git clone https://github.com/XBNMF35XB/SilentMap.py.git 
 cd SilentMap.py 
 sudo python3 SilentMap.py
+
 
 macOS Requires Homebrew. 
 brew install git python 
 git clone https://github.com/XBNMF35XB/SilentMap.py.git 
 cd SilentMap.py python3 SilentMap.py
 
+
 Windows Install Git: https://git-scm.com/download/win 
 Install Python (enable Add Python to PATH): https://www.python.org/downloads/windows/
 Open PowerShell as Administrator and run: 
 git clone https://github.com/XBNMF35XB/SilentMap.py.git
 cd SilentMap.py python SilentMap.py
+
+
+
 Usage Notes
 Network scanning works best on local networks (e.g. 192.168.x.0/24) Vendor identification is based on a limited OUI database Some features may require elevated privileges Results may vary depending on operating system and network configuration
 Disclaimer
